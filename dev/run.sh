@@ -20,11 +20,29 @@ if ! command -v nvim &> /dev/null; then
     exit 1
 fi
 
-# Check if denops.vim exists
-DENOPS_PATH="$HOME/.local/share/nvim/lazy/denops.vim"
-if [ ! -d "$DENOPS_PATH" ]; then
-    echo "❌ Error: denops.vim not found at $DENOPS_PATH"
-    echo "Please install denops.vim first"
+# Check if denops.vim exists (check multiple common paths)
+DENOPS_PATH=""
+POSSIBLE_PATHS=(
+    "$HOME/.local/share/nvim/lazy/denops.vim"
+    "$HOME/.local/share/nvim/site/pack/packer/start/denops.vim"
+    "$HOME/.local/share/nvim/site/pack/packer/opt/denops.vim"
+    "$HOME/.vim/plugged/denops.vim"
+    "$HOME/.config/nvim/pack/*/start/denops.vim"
+)
+
+for path in "${POSSIBLE_PATHS[@]}"; do
+    # Handle glob patterns
+    for expanded_path in $path; do
+        if [ -d "$expanded_path" ]; then
+            DENOPS_PATH="$expanded_path"
+            break 2
+        fi
+    done
+done
+
+if [ -z "$DENOPS_PATH" ]; then
+    echo "❌ Error: denops.vim not found in any common location"
+    echo "Please install denops.vim first or update the runtimepath in minimal_init files"
     exit 1
 fi
 
