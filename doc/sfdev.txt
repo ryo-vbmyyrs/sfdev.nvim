@@ -1,0 +1,76 @@
+*sfdev.txt*  Salesforce development plugin for Neovim
+
+Author: ryo-vbmyyrs
+License: MIT
+
+CONTENTS                                                    *sfdev-contents*
+
+1. Introduction                                             |sfdev-introduction|
+2. Requirements                                             |sfdev-requirements|
+3. Installation                                             |sfdev-installation|
+4. Commands                                                 |sfdev-commands|
+5. Configuration                                            |sfdev-configuration|
+
+==============================================================================
+1. Introduction                                             *sfdev-introduction*
+
+sfdev.nvim is a Salesforce development plugin for Neovim. It provides 
+integration with Salesforce CLI and aims to provide a similar development 
+experience to VSCode's Salesforce extensions.
+
+==============================================================================
+2. Requirements                                             *sfdev-requirements*
+
+- Neovim 0.8+
+- Deno 1.37+
+- denops.vim
+- Salesforce CLI (sf or sfdx)
+
+==============================================================================
+3. Installation                                             *sfdev-installation*
+
+Using lazy.nvim: >
+    {
+      'ryo-vbmyyrs/sfdev.nvim',
+      dependencies = { 'vim-denops/denops.vim' },
+    }
+<
+
+==============================================================================
+4. Commands                                                 *sfdev-commands*
+
+:SFOrgList                                                  *:SFOrgList*
+    Display list of authenticated orgs
+
+:SFOrgOpen                                                  *:SFOrgOpen*
+    Open default org in browser
+
+:SFDeploy                                                   *:SFDeploy*
+    Deploy current file or project
+
+:SFRetrieve                                                 *:SFRetrieve*
+    Retrieve metadata from org
+
+:SFApexExecute [code]                                       *:SFApexExecute*
+    Execute anonymous Apex code
+
+:SFRunTest [testName]                                       *:SFRunTest*
+    Run Apex tests
+
+==============================================================================
+5. Configuration                                            *sfdev-configuration*
+
+g:sfdev_default_org                                         *g:sfdev_default_org*
+    Default org for operations
+    Default: ''
+
+g:sfdev_auto_deploy                                         *g:sfdev_auto_deploy*
+    Enable auto-deploy on save
+    Default: 0
+
+g:sfdev_cli_path                                            *g:sfdev_cli_path*
+    Path to Salesforce CLI executable
+    Default: 'sf'
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:
