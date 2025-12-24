@@ -113,6 +113,86 @@ let g:sfdev_cli_path = 'sf'
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
+## Development
+
+### Local Development Setup
+
+ローカルで開発・動作確認を行う方法：
+
+#### 前提条件
+
+- Neovim 0.8+
+- Deno 1.37+
+- denops.vim がインストールされていること
+
+#### 起動方法
+
+```bash
+# 開発用スクリプトで起動
+chmod +x dev/run.sh
+./dev/run.sh
+
+# または、直接起動（Lua設定の場合）
+nvim -u dev/minimal_init.lua
+
+# または、直接起動（Vim設定の場合）
+nvim -u dev/minimal_init.vim
+```
+
+#### デバッグ
+
+```vim
+" Denopsのログを確認
+:messages
+
+" Denopsの状態を確認
+:echo denops#server#status()
+
+" プラグインのリロード
+:call denops#plugin#reload('sfdev')
+```
+
+#### ディレクトリ構造
+
+```
+dev/
+├── minimal_init.vim   # 開発用Vim設定
+├── minimal_init.lua   # 開発用Lua設定
+└── run.sh            # 起動スクリプト
+```
+
+### テスト
+
+```bash
+# 型チェック
+deno task check
+
+# フォーマット
+deno task fmt
+
+# Lint
+deno task lint
+```
+
+### デバッグのヒント
+
+1. **Denopsが起動しない場合**
+   ```vim
+   :checkhealth denops
+   ```
+
+2. **プラグインが読み込まれない場合**
+   ```vim
+   :echo denops#plugin#is_loaded('sfdev')
+   :call denops#cache#reload()
+   ```
+
+3. **エラーログの確認**
+   ```vim
+   :messages
+   :DenopsLog
+   ```
+
 ## License
 
 MIT License - see [LICENSE](LICENSE) file for details
