@@ -155,7 +155,15 @@ end
 
 -- Show org list with Telescope
 function M.show_orgs()
-  vim.fn["denops#request"]("sfdev", "listOrgsJson", {}, function(result)
+  -- Call denops request asynchronously using vim.schedule
+  vim.schedule(function()
+    local ok, result = pcall(vim.fn["denops#request"], "sfdev", "listOrgsJson", {})
+    
+    if not ok then
+      require("sfdev").notify("Failed to fetch orgs: " .. tostring(result), vim.log.levels.ERROR)
+      return
+    end
+    
     if result and result.success then
       local orgs = parse_orgs(result)
       if #orgs > 0 then
@@ -164,7 +172,8 @@ function M.show_orgs()
         require("sfdev").notify("No orgs found", vim.log.levels.WARN)
       end
     else
-      require("sfdev").notify("Failed to fetch orgs", vim.log.levels.ERROR)
+      local error_msg = result and result.stderr or "Unknown error"
+      require("sfdev").notify("Failed to fetch orgs: " .. error_msg, vim.log.levels.ERROR)
     end
   end)
 end
