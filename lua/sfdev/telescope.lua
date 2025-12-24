@@ -119,7 +119,10 @@ function M.org_picker(orgs)
         actions.close(prompt_bufnr)
         
         if selection then
-          vim.fn["denops#request"]("sfdev", "openOrg", { selection.value.alias or selection.value.username })
+          local ok, err = pcall(vim.fn["denops#request"], "sfdev", "openOrg", { selection.value.alias or selection.value.username })
+          if not ok then
+            require("sfdev").notify("Failed to open org: " .. tostring(err), vim.log.levels.ERROR)
+          end
         end
       end)
 
@@ -127,8 +130,12 @@ function M.org_picker(orgs)
       map("i", "<C-d>", function()
         local selection = action_state.get_selected_entry()
         if selection then
-          vim.fn["denops#request"]("sfdev", "setDefaultOrg", { selection.value.alias or selection.value.username })
-          require("sfdev").notify("Set as default: " .. (selection.value.alias or selection.value.username), vim.log.levels.INFO)
+          local ok, err = pcall(vim.fn["denops#request"], "sfdev", "setDefaultOrg", { selection.value.alias or selection.value.username })
+          if ok then
+            require("sfdev").notify("Set as default: " .. (selection.value.alias or selection.value.username), vim.log.levels.INFO)
+          else
+            require("sfdev").notify("Failed to set default org: " .. tostring(err), vim.log.levels.ERROR)
+          end
         end
       end)
 
@@ -142,7 +149,10 @@ function M.org_picker(orgs)
             2
           )
           if confirm == 1 then
-            vim.fn["denops#request"]("sfdev", "logoutOrg", { selection.value.alias or selection.value.username })
+            local ok, err = pcall(vim.fn["denops#request"], "sfdev", "logoutOrg", { selection.value.alias or selection.value.username })
+            if not ok then
+              require("sfdev").notify("Failed to logout: " .. tostring(err), vim.log.levels.ERROR)
+            end
             actions.close(prompt_bufnr)
           end
         end
