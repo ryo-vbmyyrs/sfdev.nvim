@@ -25,7 +25,13 @@ function M.notify(msg, level, title)
   if M.has_notify then
     vim.notify(msg, level, { title = title })
   else
-    local level_name = ({ "ERROR", "WARN", "INFO", "DEBUG" })[level] or "INFO"
+    local level_names = {
+      [vim.log.levels.ERROR] = "ERROR",
+      [vim.log.levels.WARN] = "WARN",
+      [vim.log.levels.INFO] = "INFO",
+      [vim.log.levels.DEBUG] = "DEBUG",
+    }
+    local level_name = level_names[level] or "INFO"
     vim.api.nvim_echo({{ string.format("[%s] %s", title, msg), level_name }}, true, {})
   end
 end

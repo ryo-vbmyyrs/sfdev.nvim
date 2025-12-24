@@ -39,7 +39,7 @@ async function detectSfCli(): Promise<string> {
 
 let cachedCli: string | null = null;
 
-async function getSfCli(): Promise<string> {
+export async function getSfCli(): Promise<string> {
   if (cachedCli) return cachedCli;
   cachedCli = await detectSfCli();
   return cachedCli;

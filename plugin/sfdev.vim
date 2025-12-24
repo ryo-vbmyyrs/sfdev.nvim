@@ -4,7 +4,7 @@ endif
 let g:loaded_sfdev = 1
 
 " Check for optional dependencies
-let g:sfdev_has_telescope = exists('g:loaded_telescope')
+let g:sfdev_has_telescope = luaeval("pcall(require, 'telescope')")
 let g:sfdev_has_nui = luaeval("pcall(require, 'nui.popup')")
 let g:sfdev_has_notify = luaeval("pcall(require, 'notify')")
 

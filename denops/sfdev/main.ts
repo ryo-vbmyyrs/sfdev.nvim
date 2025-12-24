@@ -303,11 +303,25 @@ export async function main(denops: Denops): Promise<void> {
      */
     async listOrgsJson(): Promise<unknown> {
       try {
-        const orgs = await cli.listOrgs();
+        const cliName = await cli.getSfCli();
+        const isLegacy = cliName === "sfdx";
+
+        const args = isLegacy
+          ? ["force:org:list", "--json"]
+          : ["org", "list", "--json"];
+
+        const rawResult = await cli.execSfCommand(args);
+
+        if (!rawResult.success) {
+          throw new Error(`Failed to list orgs: ${rawResult.stderr}`);
+        }
+
+        const json = JSON.parse(rawResult.stdout);
         const result = {
-          nonScratchOrgs: orgs,
-          scratchOrgs: [],
+          nonScratchOrgs: json.result?.nonScratchOrgs || [],
+          scratchOrgs: json.result?.scratchOrgs || [],
         };
+
         return { success: true, stdout: JSON.stringify({ result }), stderr: "" };
       } catch (e) {
         return { success: false, stdout: "", stderr: String(e) };

@@ -43,7 +43,7 @@ function M.show_deploy_progress(deploy_id)
   }
 
   vim.api.nvim_buf_set_lines(popup.bufnr, 0, -1, false, lines)
-  vim.api.nvim_buf_set_option(popup.bufnr, "modifiable", false)
+  vim.bo[popup.bufnr].modifiable = false
 
   return popup
 end
@@ -53,7 +53,7 @@ function M.update_deploy_progress(popup, status)
     return
   end
 
-  vim.api.nvim_buf_set_option(popup.bufnr, "modifiable", true)
+  vim.bo[popup.bufnr].modifiable = true
 
   local lines = {
     "Deploying to: " .. (status.targetOrg or "default org"),
@@ -85,7 +85,7 @@ function M.update_deploy_progress(popup, status)
   table.insert(lines, string.format("Status: %s  (Elapsed: %s)", status.status or "Processing", status.elapsed or "00:00"))
 
   vim.api.nvim_buf_set_lines(popup.bufnr, 0, -1, false, lines)
-  vim.api.nvim_buf_set_option(popup.bufnr, "modifiable", false)
+  vim.bo[popup.bufnr].modifiable = false
 
   -- Syntax highlighting
   vim.api.nvim_buf_call(popup.bufnr, function()

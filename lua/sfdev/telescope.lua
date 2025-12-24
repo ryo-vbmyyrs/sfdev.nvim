@@ -21,6 +21,7 @@ local icons = {
 local function parse_orgs(result)
   local ok, data = pcall(vim.json.decode, result.stdout)
   if not ok then
+    require("sfdev").notify("Failed to parse org list JSON: " .. tostring(data), vim.log.levels.ERROR)
     return {}
   end
   
@@ -108,7 +109,7 @@ function M.org_picker(orgs)
         }
         
         vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, lines)
-        vim.api.nvim_buf_set_option(self.state.bufnr, "filetype", "markdown")
+        vim.bo[self.state.bufnr].filetype = "markdown"
       end,
     }),
     attach_mappings = function(prompt_bufnr, map)

@@ -44,8 +44,8 @@ function M.show_execute_result(apex_code, result)
   -- Input content
   local input_lines = vim.split(apex_code, "\n")
   vim.api.nvim_buf_set_lines(input_popup.bufnr, 0, -1, false, input_lines)
-  vim.api.nvim_buf_set_option(input_popup.bufnr, "filetype", "apex")
-  vim.api.nvim_buf_set_option(input_popup.bufnr, "modifiable", false)
+  vim.bo[input_popup.bufnr].filetype = "apex"
+  vim.bo[input_popup.bufnr].modifiable = false
 
   -- Output content
   local output_lines = {}
@@ -83,7 +83,7 @@ function M.show_execute_result(apex_code, result)
   end
 
   vim.api.nvim_buf_set_lines(output_popup.bufnr, 0, -1, false, output_lines)
-  vim.api.nvim_buf_set_option(output_popup.bufnr, "modifiable", false)
+  vim.bo[output_popup.bufnr].modifiable = false
 
   -- Syntax highlighting
   vim.api.nvim_buf_call(output_popup.bufnr, function()
