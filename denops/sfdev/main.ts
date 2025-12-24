@@ -297,6 +297,70 @@ export async function main(denops: Denops): Promise<void> {
         );
       }
     },
+
+    /**
+     * List orgs in JSON format (for Telescope integration)
+     */
+    async listOrgsJson(): Promise<unknown> {
+      try {
+        const orgs = await cli.listOrgs();
+        const result = {
+          nonScratchOrgs: orgs,
+          scratchOrgs: [],
+        };
+        return { success: true, stdout: JSON.stringify({ result }), stderr: "" };
+      } catch (e) {
+        return { success: false, stdout: "", stderr: String(e) };
+      }
+    },
+
+    /**
+     * Set default org
+     */
+    async setDefaultOrg(args: unknown): Promise<unknown> {
+      ensure(args, is.Array);
+      const [targetOrg] = args as [string];
+
+      try {
+        await cli.execSfCommand(["config", "set", "target-org", targetOrg]);
+        await denops.cmd(
+          `call sfdev#echo_success("Set default org to: ${targetOrg}")`,
+        );
+        return { success: true, message: `Set default org to: ${targetOrg}` };
+      } catch (e) {
+        await denops.cmd(
+          `call sfdev#echo_error("Failed to set default org: ${String(e)}")`,
+        );
+        return { success: false, message: String(e) };
+      }
+    },
+
+    /**
+     * Logout from org
+     */
+    async logoutOrg(args: unknown): Promise<unknown> {
+      ensure(args, is.Array);
+      const [targetOrg] = args as [string];
+
+      try {
+        await cli.execSfCommand([
+          "org",
+          "logout",
+          "--target-org",
+          targetOrg,
+          "--no-prompt",
+        ]);
+        await denops.cmd(
+          `call sfdev#echo_success("Logged out from: ${targetOrg}")`,
+        );
+        return { success: true, message: `Logged out from: ${targetOrg}` };
+      } catch (e) {
+        await denops.cmd(
+          `call sfdev#echo_error("Failed to logout: ${String(e)}")`,
+        );
+        return { success: false, message: String(e) };
+      }
+    },
   };
 
   await denops.cmd('call sfdev#echo_info("sfdev.nvim loaded")');
