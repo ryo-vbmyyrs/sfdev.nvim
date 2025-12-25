@@ -144,8 +144,9 @@ function M.goto_error_line(line, column)
   -- 前のウィンドウに戻る
   vim.cmd("wincmd p")
   
-  -- 該当行へジャンプ
-  vim.api.nvim_win_set_cursor(0, { line, (column or 1) - 1 })
+  -- 該当行へジャンプ (column is 1-based, nvim_win_set_cursor expects 0-based column)
+  local col_zero_based = (column and column > 0) and (column - 1) or 0
+  vim.api.nvim_win_set_cursor(0, { line, col_zero_based })
   
   -- ハイライト
   vim.fn.matchaddpos("Error", {{ line }})
