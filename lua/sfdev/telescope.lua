@@ -327,7 +327,14 @@ end
 
 -- Show logs with Telescope
 function M.show_logs()
-  vim.fn["denops#request"]("sfdev", "listLogs", {}, function(result)
+  vim.schedule(function()
+    local ok, result = pcall(vim.fn["denops#request"], "sfdev", "listLogs", {})
+    
+    if not ok then
+      require("sfdev").notify("Failed to fetch logs: " .. tostring(result), vim.log.levels.ERROR)
+      return
+    end
+    
     if result and result.success then
       if result.logs and #result.logs > 0 then
         M.log_picker(result.logs)
