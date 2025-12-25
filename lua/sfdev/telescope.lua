@@ -347,4 +347,117 @@ function M.show_logs()
   end)
 end
 
+-- Test Class Picker
+function M.test_class_picker(classes)
+  local displayer = entry_display.create({
+    separator = " ",
+    items = {
+      { width = 2 },
+      { width = 40 },
+      { width = 10 },
+      { width = 8 },
+      { remaining = true },
+    },
+  })
+
+  local test_icons = {
+    Active = "✓",
+    Inactive = "✗",
+    Deleted = "🗑",
+  }
+
+  local function make_display(entry)
+    local class = entry.value
+    local icon = test_icons[class.Status] or "📝"
+    local status_hl = class.Status == "Active" and "TelescopeResultsString" or "TelescopeResultsComment"
+    local valid_text = class.IsValid and "Valid" or "Invalid"
+    local valid_hl = class.IsValid and "TelescopeResultsString" or "TelescopeResultsError"
+
+    return displayer({
+      { icon, "TelescopeResultsIdentifier" },
+      { class.Name, "TelescopeResultsField" },
+      { class.Status or "Unknown", status_hl },
+      { valid_text, valid_hl },
+      { class.NamespacePrefix or "", "TelescopeResultsComment" },
+    })
+  end
+
+  local function entry_maker(class)
+    return {
+      value = class,
+      display = make_display,
+      ordinal = string.format("%s %s %s", class.Name or "", class.Status or "", class.NamespacePrefix or ""),
+    }
+  end
+
+  pickers.new({}, {
+    prompt_title = "Salesforce Test Classes",
+    finder = finders.new_table({
+      results = classes,
+      entry_maker = entry_maker,
+    }),
+    sorter = conf.generic_sorter({}),
+    previewer = previewers.new_buffer_previewer({
+      title = "Class Details",
+      define_preview = function(self, entry)
+        local class = entry.value
+        local lines = {
+          "Apex Test Class Information",
+          "═══════════════════════════════════════",
+          "",
+          string.format("Name:            %s", class.Name or "N/A"),
+          string.format("ID:              %s", class.Id or "N/A"),
+          string.format("Status:          %s", class.Status or "N/A"),
+          string.format("Is Valid:        %s", class.IsValid and "Yes" or "No"),
+          string.format("API Version:     %s", class.ApiVersion or "N/A"),
+          string.format("Namespace:       %s", class.NamespacePrefix or "N/A"),
+          string.format("Lines of Code:   %s", class.LengthWithoutComments or "N/A"),
+          "",
+          "Timestamps:",
+          string.format("  Created:       %s", class.CreatedDate or "N/A"),
+          string.format("  Modified:      %s", class.LastModifiedDate or "N/A"),
+        }
+        
+        vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, lines)
+        vim.api.nvim_buf_set_option(self.state.bufnr, "filetype", "markdown")
+      end,
+    }),
+    attach_mappings = function(prompt_bufnr, map)
+      -- Run test
+      actions.select_default:replace(function()
+        local selection = action_state.get_selected_entry()
+        actions.close(prompt_bufnr)
+        
+        if selection then
+          vim.fn["denops#request"]("sfdev", "runTest", { selection.value.Name })
+        end
+      end)
+
+      return true
+    end,
+  }):find()
+end
+
+-- Show test classes with Telescope
+function M.show_test_classes()
+  vim.schedule(function()
+    local ok, result = pcall(vim.fn["denops#request"], "sfdev", "listTestClasses", {})
+    
+    if not ok then
+      require("sfdev").notify("Failed to fetch test classes: " .. tostring(result), vim.log.levels.ERROR)
+      return
+    end
+    
+    if result and result.success then
+      if result.classes and #result.classes > 0 then
+        M.test_class_picker(result.classes)
+      else
+        require("sfdev").notify("No test classes found", vim.log.levels.WARN)
+      end
+    else
+      require("sfdev").notify("Failed to fetch test classes", vim.log.levels.ERROR)
+    end
+  end)
+end
+
 return M

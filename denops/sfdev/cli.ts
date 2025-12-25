@@ -5,6 +5,7 @@ import type {
   LogListResult,
   Org,
   RetrieveResult,
+  TestClassListResult,
   TestResult,
 } from "./types.ts";
 
@@ -555,6 +556,48 @@ export async function clearLogs(
       success: false,
       message: String(error),
       deletedCount: 0,
+    };
+  }
+}
+
+/**
+ * テストクラスの一覧を取得
+ */
+export async function listTestClasses(
+  targetOrg?: string,
+): Promise<TestClassListResult> {
+  const args = [
+    "data",
+    "query",
+    "--query",
+    "SELECT Id, Name, NamespacePrefix, ApiVersion, Status, IsValid, LengthWithoutComments, CreatedDate, LastModifiedDate FROM ApexClass WHERE (Name LIKE '%Test%' OR Name LIKE '%test%') ORDER BY Name ASC",
+    "--json",
+  ];
+
+  if (targetOrg) {
+    args.push("--target-org", targetOrg);
+  }
+
+  try {
+    const result = await execSfCommand(args);
+
+    if (result.success && result.stdout) {
+      const data = JSON.parse(result.stdout);
+      return {
+        success: true,
+        classes: data.result.records || [],
+      };
+    }
+
+    return {
+      success: false,
+      classes: [],
+    };
+  } catch (error) {
+    console.error("Failed to list test classes:", error);
+    return {
+      success: false,
+      classes: [],
     };
   }
 }
