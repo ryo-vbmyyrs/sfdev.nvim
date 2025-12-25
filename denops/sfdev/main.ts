@@ -230,7 +230,9 @@ export async function main(denops: Denops): Promise<void> {
       try {
         ensure(args, is.Array);
         if (args.length !== 1) {
-          await denops.cmd('call sfdev#echo_error("Invalid arguments: expected single code string")');
+          await denops.cmd(
+            'call sfdev#echo_error("Invalid arguments. Use :SFApexExecute [code] or :SFApexExecute without args to execute buffer")',
+          );
           return;
         }
         const [apexCode] = args as [string];
