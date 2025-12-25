@@ -13,7 +13,7 @@ export async function main(denops: Denops): Promise<void> {
         const orgs = await cli.listOrgs();
 
         if (orgs.length === 0) {
-          await denops.cmd('call sfdev#echo_info("No authenticated orgs found")');
+          await denops.call("sfdev#echo_info", "No authenticated orgs found");
           return;
         }
 
@@ -38,10 +38,11 @@ export async function main(denops: Denops): Promise<void> {
           await denops.cmd("file [SF Orgs]");
         });
 
-        await denops.cmd('call sfdev#echo_success("Org list displayed")');
+        await denops.call("sfdev#echo_success", "Org list displayed");
       } catch (e) {
-        await denops.cmd(
-          `call sfdev#echo_error("Failed to list orgs: ${String(e)}")`,
+        await denops.call(
+          "sfdev#echo_error",
+          `Failed to list orgs: ${String(e)}`,
         );
       }
     },
@@ -56,10 +57,11 @@ export async function main(denops: Denops): Promise<void> {
           (await vars.g.get(denops, "sfdev_default_org", "")) as string;
 
         await cli.openOrg(orgToUse || undefined);
-        await denops.cmd('call sfdev#echo_success("Org opened in browser")');
+        await denops.call("sfdev#echo_success", "Org opened in browser");
       } catch (e) {
-        await denops.cmd(
-          `call sfdev#echo_error("Failed to open org: ${String(e)}")`,
+        await denops.call(
+          "sfdev#echo_error",
+          `Failed to open org: ${String(e)}`,
         );
       }
     },
@@ -83,15 +85,16 @@ export async function main(denops: Denops): Promise<void> {
           // Get current file path
           const currentFile = await fn.expand(denops, "%:p") as string;
           if (!currentFile) {
-            await denops.cmd(
-              'call sfdev#echo_error("No file to deploy")',
+            await denops.call(
+              "sfdev#echo_error",
+              "No file to deploy",
             );
             return;
           }
           deployPath = currentFile;
         }
 
-        await denops.cmd('call sfdev#echo_info("Deploying...")');
+        await denops.call("sfdev#echo_info", "Deploying...");
 
         const result = await cli.deploy(
           deployPath,
@@ -99,22 +102,24 @@ export async function main(denops: Denops): Promise<void> {
         );
 
         if (result.success) {
-          await denops.cmd(
-            `call sfdev#echo_success("Deploy succeeded: ${result.status}")`,
+          await denops.call(
+            "sfdev#echo_success",
+            `Deploy succeeded: ${result.status}`,
           );
         } else {
           let errorMsg = `Deploy failed: ${result.status}`;
           if (result.componentFailures && result.componentFailures.length > 0) {
-            errorMsg += "\\n" +
+            errorMsg += "\n" +
               result.componentFailures
                 .map((f) => `  ${f.fullName}: ${f.problem}`)
-                .join("\\n");
+                .join("\n");
           }
-          await denops.cmd(`call sfdev#echo_error("${errorMsg}")`);
+          await denops.call("sfdev#echo_error", errorMsg);
         }
       } catch (e) {
-        await denops.cmd(
-          `call sfdev#echo_error("Deploy error: ${String(e)}")`,
+        await denops.call(
+          "sfdev#echo_error",
+          `Deploy error: ${String(e)}`,
         );
       }
     },
@@ -132,13 +137,14 @@ export async function main(denops: Denops): Promise<void> {
         )) as string;
 
         if (!meta) {
-          await denops.cmd(
-            'call sfdev#echo_error("Please specify metadata to retrieve")',
+          await denops.call(
+            "sfdev#echo_error",
+            "Please specify metadata to retrieve",
           );
           return;
         }
 
-        await denops.cmd('call sfdev#echo_info("Retrieving metadata...")');
+        await denops.call("sfdev#echo_info", "Retrieving metadata...");
 
         const metadataArray = meta.split(",").map((m) => m.trim());
         const result = await cli.retrieve(
@@ -147,17 +153,20 @@ export async function main(denops: Denops): Promise<void> {
         );
 
         if (result.success) {
-          await denops.cmd(
-            `call sfdev#echo_success("Retrieve succeeded: ${result.status}")`,
+          await denops.call(
+            "sfdev#echo_success",
+            `Retrieve succeeded: ${result.status}`,
           );
         } else {
-          await denops.cmd(
-            `call sfdev#echo_error("Retrieve failed: ${result.message || result.status}")`,
+          await denops.call(
+            "sfdev#echo_error",
+            `Retrieve failed: ${result.message || result.status}`,
           );
         }
       } catch (e) {
-        await denops.cmd(
-          `call sfdev#echo_error("Retrieve error: ${String(e)}")`,
+        await denops.call(
+          "sfdev#echo_error",
+          `Retrieve error: ${String(e)}`,
         );
       }
     },
@@ -192,13 +201,14 @@ export async function main(denops: Denops): Promise<void> {
         }
 
         if (!apexToExecute.trim()) {
-          await denops.cmd(
-            'call sfdev#echo_error("No Apex code to execute")',
+          await denops.call(
+            "sfdev#echo_error",
+            "No Apex code to execute",
           );
           return;
         }
 
-        await denops.cmd('call sfdev#echo_info("Executing Apex...")');
+        await denops.call("sfdev#echo_info", "Executing Apex...");
 
         const result = await cli.executeApex(
           apexToExecute,
@@ -206,21 +216,25 @@ export async function main(denops: Denops): Promise<void> {
         );
 
         if (result.success) {
-          await denops.cmd(
-            'call sfdev#echo_success("Apex executed successfully")',
+          await denops.call(
+            "sfdev#echo_success",
+            "Apex executed successfully",
           );
         } else if (!result.compiled) {
-          await denops.cmd(
-            `call sfdev#echo_error("Compilation failed: ${result.compileProblem || "Unknown error"}")`,
+          await denops.call(
+            "sfdev#echo_error",
+            `Compilation failed: ${result.compileProblem || "Unknown error"}`,
           );
         } else {
-          await denops.cmd(
-            `call sfdev#echo_error("Execution failed: ${result.exceptionMessage || "Unknown error"}")`,
+          await denops.call(
+            "sfdev#echo_error",
+            `Execution failed: ${result.exceptionMessage || "Unknown error"}`,
           );
         }
       } catch (e) {
-        await denops.cmd(
-          `call sfdev#echo_error("Execute error: ${String(e)}")`,
+        await denops.call(
+          "sfdev#echo_error",
+          `Execute error: ${String(e)}`,
         );
       }
     },
@@ -237,7 +251,7 @@ export async function main(denops: Denops): Promise<void> {
           "",
         )) as string;
 
-        await denops.cmd('call sfdev#echo_info("Running tests...")');
+        await denops.call("sfdev#echo_info", "Running tests...");
 
         const testArray = tests ? tests.split(",").map((t) => t.trim()) : undefined;
         const result = await cli.runTests(
@@ -283,17 +297,20 @@ export async function main(denops: Denops): Promise<void> {
         });
 
         if (result.success) {
-          await denops.cmd(
-            `call sfdev#echo_success("All tests passed (${result.summary.passing}/${result.summary.testsRan})")`,
+          await denops.call(
+            "sfdev#echo_success",
+            `All tests passed (${result.summary.passing}/${result.summary.testsRan})`,
           );
         } else {
-          await denops.cmd(
-            `call sfdev#echo_error("Tests failed (${result.summary.failing} failures)")`,
+          await denops.call(
+            "sfdev#echo_error",
+            `Tests failed (${result.summary.failing} failures)`,
           );
         }
       } catch (e) {
-        await denops.cmd(
-          `call sfdev#echo_error("Test error: ${String(e)}")`,
+        await denops.call(
+          "sfdev#echo_error",
+          `Test error: ${String(e)}`,
         );
       }
     },
@@ -337,13 +354,15 @@ export async function main(denops: Denops): Promise<void> {
 
       try {
         await cli.execSfCommand(["config", "set", "target-org", targetOrg]);
-        await denops.cmd(
-          `call sfdev#echo_success("Set default org to: ${targetOrg}")`,
+        await denops.call(
+          "sfdev#echo_success",
+          `Set default org to: ${targetOrg}`,
         );
         return { success: true, message: `Set default org to: ${targetOrg}` };
       } catch (e) {
-        await denops.cmd(
-          `call sfdev#echo_error("Failed to set default org: ${String(e)}")`,
+        await denops.call(
+          "sfdev#echo_error",
+          `Failed to set default org: ${String(e)}`,
         );
         return { success: false, message: String(e) };
       }
@@ -364,18 +383,20 @@ export async function main(denops: Denops): Promise<void> {
           targetOrg,
           "--no-prompt",
         ]);
-        await denops.cmd(
-          `call sfdev#echo_success("Logged out from: ${targetOrg}")`,
+        await denops.call(
+          "sfdev#echo_success",
+          `Logged out from: ${targetOrg}`,
         );
         return { success: true, message: `Logged out from: ${targetOrg}` };
       } catch (e) {
-        await denops.cmd(
-          `call sfdev#echo_error("Failed to logout: ${String(e)}")`,
+        await denops.call(
+          "sfdev#echo_error",
+          `Failed to logout: ${String(e)}`,
         );
         return { success: false, message: String(e) };
       }
     },
   };
 
-  await denops.cmd('call sfdev#echo_info("sfdev.nvim loaded")');
+  await denops.call("sfdev#echo_info", "sfdev.nvim loaded");
 }
