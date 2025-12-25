@@ -433,14 +433,26 @@ export async function getLog(
       const data = JSON.parse(result.stdout);
       // Ensure content is always a string
       let content = "";
+      
+      // Handle different response formats from Salesforce CLI
       if (typeof data.result === "string") {
         content = data.result;
+      } else if (Array.isArray(data.result) && data.result.length > 0) {
+        // If result is an array, get the first element's log property
+        if (typeof data.result[0] === "string") {
+          content = data.result[0];
+        } else if (data.result[0] && typeof data.result[0].log === "string") {
+          content = data.result[0].log;
+        } else {
+          content = JSON.stringify(data.result, null, 2);
+        }
       } else if (data.result && typeof data.result.log === "string") {
         content = data.result.log;
       } else if (data.result) {
         // If result is an object, try to stringify it
         content = JSON.stringify(data.result, null, 2);
       }
+      
       return {
         success: true,
         content: content,
