@@ -280,20 +280,8 @@ export async function main(denops: Denops): Promise<void> {
           targetOrg || undefined,
         );
 
-        // Check if NUI is available for rich display
-        const hasNui = await vars.g.get(denops, "sfdev_has_nui", false) as boolean;
-
-        if (hasNui) {
-          // Use NUI for rich display
-          await denops.call(
-            "luaeval",
-            "require('sfdev.ui.apex').show_execute_result(_A[1], _A[2])",
-            [apexCode, result],
-          );
-        } else {
-          // Fallback to simple buffer display
-          await showExecuteResultSimple(denops, apexCode, result);
-        }
+        // Display result in simple buffer
+        await showExecuteResultSimple(denops, apexCode, result);
 
         // Show status message
         if (result.success) {
