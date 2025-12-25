@@ -431,9 +431,19 @@ export async function getLog(
 
     if (result.success && result.stdout) {
       const data = JSON.parse(result.stdout);
+      // Ensure content is always a string
+      let content = "";
+      if (typeof data.result === "string") {
+        content = data.result;
+      } else if (data.result && typeof data.result.log === "string") {
+        content = data.result.log;
+      } else if (data.result) {
+        // If result is an object, try to stringify it
+        content = JSON.stringify(data.result, null, 2);
+      }
       return {
         success: true,
-        content: data.result.log || data.result || "",
+        content: content,
         logId: logId,
       };
     }
