@@ -237,16 +237,22 @@ export async function main(denops: Denops): Promise<void> {
      */
     async executeApex(args: unknown): Promise<void> {
       try {
-        ensure(args, is.Array);
-        if (args.length !== 1) {
+        // Handle both string and array arguments flexibly
+        let apexCode = "";
+        
+        if (typeof args === "string") {
+          apexCode = args;
+        } else if (Array.isArray(args)) {
+          if (args.length > 0) {
+            apexCode = String(args[0]);
+          }
+        } else {
           await denops.call(
             "sfdev#echo_error",
             "Invalid arguments. Use :SFApexExecute [code] or :SFApexExecute without args to execute buffer",
           );
           return;
         }
-        const [apexCode] = args as [string];
-        ensure(apexCode, is.String);
 
         if (!apexCode || apexCode.trim() === "") {
           await denops.call("sfdev#echo_error", "No Apex code provided");
