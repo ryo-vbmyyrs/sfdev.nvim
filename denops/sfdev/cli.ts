@@ -270,6 +270,11 @@ export async function executeApex(
     try {
       const json = JSON.parse(result.stdout);
 
+      // Extract debug logs from the result
+      const logs = json.result?.logs && typeof json.result.logs === "string"
+        ? json.result.logs.split("\n").filter((line: string) => line.trim().length > 0)
+        : [];
+
       return {
         success: json.result?.success || false,
         compiled: json.result?.compiled || false,
@@ -278,6 +283,7 @@ export async function executeApex(
         exceptionStackTrace: json.result?.exceptionStackTrace,
         line: json.result?.line,
         column: json.result?.column,
+        logs: logs.length > 0 ? logs : undefined,
       };
     } catch (e) {
       return {

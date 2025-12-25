@@ -239,9 +239,14 @@ export async function main(denops: Denops): Promise<void> {
       try {
         ensure(args, is.Array);
         if (args.length !== 1) {
+<<<<<<< HEAD
           await denops.call(
             "sfdev#echo_error",
             "Invalid arguments. Use :SFApexExecute [code] or :SFApexExecute without args to execute buffer",
+=======
+          await denops.cmd(
+            'call sfdev#echo_error("Invalid arguments. Use :SFApexExecute [code] or :SFApexExecute without args to execute buffer")',
+>>>>>>> origin/main
           );
           return;
         }
@@ -249,7 +254,11 @@ export async function main(denops: Denops): Promise<void> {
         ensure(apexCode, is.String);
 
         if (!apexCode || apexCode.trim() === "") {
+<<<<<<< HEAD
           await denops.call("sfdev#echo_error", "No Apex code provided");
+=======
+          await denops.cmd('call sfdev#echo_error("No Apex code provided")');
+>>>>>>> origin/main
           return;
         }
 
@@ -261,9 +270,14 @@ export async function main(denops: Denops): Promise<void> {
 
         // Execution info
         const lines = apexCode.split("\n").length;
+<<<<<<< HEAD
         await denops.call(
           "sfdev#echo_info",
           `Executing ${lines} line(s) of Apex code...`,
+=======
+        await denops.cmd(
+          `call sfdev#echo_info("Executing ${lines} line(s) of Apex code...")`,
+>>>>>>> origin/main
         );
 
         const result = await cli.executeApex(
@@ -288,9 +302,15 @@ export async function main(denops: Denops): Promise<void> {
 
         // Show status message
         if (result.success) {
+<<<<<<< HEAD
           await denops.call("sfdev#echo_success", "Apex executed successfully");
         } else {
           await denops.call("sfdev#echo_error", "Apex execution failed");
+=======
+          await denops.cmd('call sfdev#echo_success("Apex executed successfully")');
+        } else {
+          await denops.cmd('call sfdev#echo_error("Apex execution failed")');
+>>>>>>> origin/main
         }
       } catch (e) {
         await denops.call(

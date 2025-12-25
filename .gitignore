@@ -14,6 +14,7 @@ Thumbs.db
 
 # Test
 coverage/
+test_apex_example.apex
 
 # Development
 dev/*.log
