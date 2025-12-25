@@ -38,6 +38,7 @@ export interface ExecuteResult {
   exceptionStackTrace?: string;
   line?: number;
   column?: number;
+  logs?: string[];
 }
 
 export interface TestResult {
