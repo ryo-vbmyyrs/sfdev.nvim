@@ -569,6 +569,24 @@ export async function main(denops: Denops): Promise<void> {
         return { success: false, error: String(error) };
       }
     },
+
+    /**
+     * テストクラスの一覧を取得
+     */
+    async listTestClasses(): Promise<unknown> {
+      try {
+        const targetOrg = (await vars.g.get(
+          denops,
+          "sfdev_default_org",
+          "",
+        )) as string;
+        const result = await cli.listTestClasses(targetOrg || undefined);
+        return result;
+      } catch (error) {
+        await denops.call("sfdev#echo_error", `Failed to list test classes: ${error}`);
+        return { success: false, error: String(error), classes: [] };
+      }
+    },
   };
 
   await denops.call("sfdev#echo_info", "sfdev.nvim loaded");

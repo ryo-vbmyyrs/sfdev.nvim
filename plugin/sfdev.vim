@@ -20,7 +20,7 @@ command! SFOrgOpen call denops#request('sfdev', 'openOrg', [])
 command! SFDeploy call denops#request('sfdev', 'deploy', [])
 command! SFRetrieve call denops#request('sfdev', 'retrieve', [])
 command! -range -nargs=? SFApexExecute call s:ExecuteApex(<line1>, <line2>, <q-args>)
-command! -nargs=? SFRunTest call denops#request('sfdev', 'runTest', [<q-args>])
+command! -nargs=? SFRunTest call s:RunTest(<q-args>)
 
 " Apex Log commands
 if g:sfdev_has_telescope
@@ -62,6 +62,20 @@ function! s:ExecuteApex(line1, line2, args) abort
   
   " Denopsを呼び出し
   call denops#request('sfdev', 'executeApex', [l:code])
+endfunction
+
+" テスト実行のラッパー関数
+function! s:RunTest(args) abort
+  " 引数が指定されている場合は、直接実行
+  if !empty(a:args)
+    call denops#request('sfdev', 'runTest', [a:args])
+  " 引数なしでTelescopeが利用可能な場合は、ピッカーを表示
+  elseif g:sfdev_has_telescope
+    lua require('sfdev.telescope').show_test_classes()
+  " Telescopeがない場合は、エラーメッセージを表示
+  else
+    call sfdev#echo_error('Please specify test class name or install Telescope for interactive selection')
+  endif
 endfunction
 
 " キーマップの自動設定

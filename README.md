@@ -90,7 +90,7 @@ Plug 'ryo-vbmyyrs/sfdev.nvim'
 | `:SFDeploy` | 現在のファイル/プロジェクトをデプロイ |
 | `:SFRetrieve` | メタデータを取得 |
 | `:[range]SFApexExecute [code]` | 匿名Apexを実行（引数、選択範囲、またはバッファ全体） |
-| `:SFRunTest [testName]` | Apexテストを実行 |
+| `:SFRunTest [testName]` | Apexテストを実行（引数なしでTelescope使用時は対話的なピッカー） |
 | `:SFLogList` | Apexログ一覧を表示（Telescope使用） |
 | `:SFLogGet <logId>` | 特定のログを取得 |
 | `:SFLogDelete <logId>` | 特定のログを削除 |
@@ -104,6 +104,14 @@ When [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) is insta
 - **`<C-d>`** - Set selected org as default
 - **`<C-x>`** - Logout from selected org
 - Live preview of org details in the preview window
+
+### Apex Test Runner
+
+When [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) is installed, `:SFRunTest` without arguments provides an interactive test class selector with:
+
+- **`<CR>`** (Enter) - Run the selected test class
+- Live preview of test class details in the preview window
+- Displays test classes with status, validity, and metadata
 
 ### Apex Log Viewer
 
@@ -171,6 +179,9 @@ let g:sfdev_cli_path = 'sf'
 
 " 特定のテストを実行
 :SFRunTest MyTestClass
+
+" テストクラス一覧から選択して実行（Telescope必須）
+:SFRunTest
 ```
 
 ### Execute Apex Code from Buffer

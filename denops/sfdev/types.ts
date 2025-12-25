@@ -87,3 +87,20 @@ export interface LogContentResult {
   content: string;
   logId?: string;
 }
+
+export interface ApexClass {
+  Id: string;
+  Name: string;
+  NamespacePrefix?: string;
+  ApiVersion: number;
+  Status: string;
+  IsValid: boolean;
+  LengthWithoutComments: number;
+  CreatedDate: string;
+  LastModifiedDate: string;
+}
+
+export interface TestClassListResult {
+  success: boolean;
+  classes: ApexClass[];
+}
