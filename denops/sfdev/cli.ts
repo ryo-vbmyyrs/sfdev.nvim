@@ -1,6 +1,8 @@
 import type {
   DeployResult,
   ExecuteResult,
+  LogContentResult,
+  LogListResult,
   Org,
   RetrieveResult,
   TestResult,
@@ -357,6 +359,180 @@ export async function runTests(
         failing: 0,
         skipped: 0,
       },
+    };
+  }
+}
+
+/**
+ * Apexログの一覧を取得
+ */
+export async function listLogs(
+  targetOrg?: string,
+  limit: number = 25,
+): Promise<LogListResult> {
+  const args = [
+    "data",
+    "query",
+    "--query",
+    `SELECT Id, LogUserId, LogUser.Name, Application, DurationMilliseconds, Location, LogLength, Operation, Request, StartTime, Status FROM ApexLog ORDER BY StartTime DESC LIMIT ${limit}`,
+    "--json",
+  ];
+
+  if (targetOrg) {
+    args.push("--target-org", targetOrg);
+  }
+
+  try {
+    const result = await execSfCommand(args);
+
+    if (result.success && result.stdout) {
+      const data = JSON.parse(result.stdout);
+      return {
+        success: true,
+        logs: data.result.records || [],
+      };
+    }
+
+    return {
+      success: false,
+      logs: [],
+    };
+  } catch (error) {
+    console.error("Failed to list logs:", error);
+    return {
+      success: false,
+      logs: [],
+    };
+  }
+}
+
+/**
+ * 特定のApexログの内容を取得
+ */
+export async function getLog(
+  logId: string,
+  targetOrg?: string,
+): Promise<LogContentResult> {
+  const args = [
+    "apex",
+    "get",
+    "log",
+    "--log-id",
+    logId,
+    "--json",
+  ];
+
+  if (targetOrg) {
+    args.push("--target-org", targetOrg);
+  }
+
+  try {
+    const result = await execSfCommand(args);
+
+    if (result.success && result.stdout) {
+      const data = JSON.parse(result.stdout);
+      return {
+        success: true,
+        content: data.result.log || data.result || "",
+        logId: logId,
+      };
+    }
+
+    return {
+      success: false,
+      content: result.stderr || "Failed to retrieve log",
+      logId: logId,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      content: String(error),
+      logId: logId,
+    };
+  }
+}
+
+/**
+ * Apexログを削除
+ */
+export async function deleteLog(
+  logId: string,
+  targetOrg?: string,
+): Promise<{ success: boolean; message?: string }> {
+  const args = [
+    "data",
+    "delete",
+    "record",
+    "--sobject",
+    "ApexLog",
+    "--record-id",
+    logId,
+    "--json",
+  ];
+
+  if (targetOrg) {
+    args.push("--target-org", targetOrg);
+  }
+
+  try {
+    const result = await execSfCommand(args);
+
+    if (result.success) {
+      return {
+        success: true,
+        message: `Log ${logId} deleted successfully`,
+      };
+    }
+
+    return {
+      success: false,
+      message: result.stderr || "Failed to delete log",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: String(error),
+    };
+  }
+}
+
+/**
+ * 全てのApexログを削除
+ */
+export async function clearLogs(
+  targetOrg?: string,
+): Promise<{ success: boolean; message?: string; deletedCount?: number }> {
+  try {
+    // まずログ一覧を取得
+    const listResult = await listLogs(targetOrg, 1000);
+
+    if (!listResult.success || listResult.logs.length === 0) {
+      return {
+        success: true,
+        message: "No logs to delete",
+        deletedCount: 0,
+      };
+    }
+
+    // 全ログを削除
+    let deletedCount = 0;
+    for (const log of listResult.logs) {
+      const deleteResult = await deleteLog(log.Id, targetOrg);
+      if (deleteResult.success) {
+        deletedCount++;
+      }
+    }
+
+    return {
+      success: true,
+      message: `Deleted ${deletedCount} logs`,
+      deletedCount,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: String(error),
+      deletedCount: 0,
     };
   }
 }

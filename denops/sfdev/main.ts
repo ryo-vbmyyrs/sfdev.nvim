@@ -454,6 +454,121 @@ export async function main(denops: Denops): Promise<void> {
         return { success: false, message: String(e) };
       }
     },
+
+    /**
+     * Apexログ一覧を取得
+     */
+    async listLogs(): Promise<unknown> {
+      try {
+        const result = await cli.listLogs();
+        return result;
+      } catch (error) {
+        await denops.call("sfdev#echo_error", `Failed to list logs: ${error}`);
+        return { success: false, error: String(error), logs: [] };
+      }
+    },
+
+    /**
+     * Apexログの内容を取得
+     */
+    async getLog(args: unknown): Promise<unknown> {
+      try {
+        let logId = "";
+        if (typeof args === "string") {
+          logId = args;
+        } else if (Array.isArray(args) && args.length > 0) {
+          logId = String(args[0]);
+        }
+
+        if (!logId) {
+          throw new Error("No log ID provided");
+        }
+
+        await denops.call("sfdev#echo_info", "Fetching log...");
+        const result = await cli.getLog(logId);
+
+        if (result.success) {
+          // 新しいバッファを作成
+          await denops.cmd("new");
+
+          // ログ内容を設定
+          const lines = result.content.split("\n");
+          await fn.setline(denops, 1, lines);
+
+          // バッファ設定
+          await denops.cmd("setlocal buftype=nofile");
+          await denops.cmd("setlocal bufhidden=wipe");
+          await denops.cmd("setlocal noswapfile");
+          await denops.cmd("setlocal filetype=apexlog");
+          await denops.cmd(`file [ApexLog] ${logId}`);
+
+          await denops.call("sfdev#echo_success", "Log loaded successfully");
+        } else {
+          await denops.call("sfdev#echo_error", `Failed to fetch log: ${result.content}`);
+        }
+
+        return result;
+      } catch (error) {
+        await denops.call("sfdev#echo_error", `Get log error: ${error}`);
+        return { success: false, error: String(error) };
+      }
+    },
+
+    /**
+     * Apexログを削除
+     */
+    async deleteLog(args: unknown): Promise<unknown> {
+      try {
+        let logId = "";
+        if (typeof args === "string") {
+          logId = args;
+        } else if (Array.isArray(args) && args.length > 0) {
+          logId = String(args[0]);
+        }
+
+        if (!logId) {
+          throw new Error("No log ID provided");
+        }
+
+        await denops.call("sfdev#echo_info", "Deleting log...");
+        const result = await cli.deleteLog(logId);
+
+        if (result.success) {
+          await denops.call("sfdev#echo_success", result.message || "Log deleted");
+        } else {
+          await denops.call("sfdev#echo_error", result.message || "Failed to delete log");
+        }
+
+        return result;
+      } catch (error) {
+        await denops.call("sfdev#echo_error", `Delete log error: ${error}`);
+        return { success: false, error: String(error) };
+      }
+    },
+
+    /**
+     * 全Apexログを削除
+     */
+    async clearLogs(): Promise<unknown> {
+      try {
+        await denops.call("sfdev#echo_info", "Clearing all logs...");
+        const result = await cli.clearLogs();
+
+        if (result.success) {
+          await denops.call(
+            "sfdev#echo_success",
+            result.message || `Deleted ${result.deletedCount} logs`,
+          );
+        } else {
+          await denops.call("sfdev#echo_error", result.message || "Failed to clear logs");
+        }
+
+        return result;
+      } catch (error) {
+        await denops.call("sfdev#echo_error", `Clear logs error: ${error}`);
+        return { success: false, error: String(error) };
+      }
+    },
   };
 
   await denops.call("sfdev#echo_info", "sfdev.nvim loaded");
