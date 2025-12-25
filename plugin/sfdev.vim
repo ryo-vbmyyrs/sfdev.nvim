@@ -35,7 +35,7 @@ function! s:ExecuteApex(line1, line2, args) abort
   if !empty(a:args)
     let l:code = a:args
   " 範囲指定がある場合（Visual mode等）
-  elseif a:line1 != a:line2 || a:line1 != line('.')
+  elseif a:line1 != a:line2
     let l:lines = getline(a:line1, a:line2)
     let l:code = join(l:lines, "\n")
   " 引数なし、範囲指定なし → バッファ全体

@@ -44,6 +44,12 @@ endfunction
 
 " 最後の実行結果のエラー行にジャンプ
 function! sfdev#goto_error() abort
+  " Check if NUI is available
+  if !luaeval("pcall(require, 'sfdev.ui.apex')")
+    call sfdev#echo_error('Error navigation requires nui.nvim')
+    return
+  endif
+
   let l:result = luaeval("require('sfdev.ui.apex').last_result")
   
   if empty(l:result)
