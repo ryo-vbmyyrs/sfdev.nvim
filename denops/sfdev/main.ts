@@ -229,6 +229,10 @@ export async function main(denops: Denops): Promise<void> {
     async executeApex(args: unknown): Promise<void> {
       try {
         ensure(args, is.Array);
+        if (args.length !== 1) {
+          await denops.cmd('call sfdev#echo_error("Invalid arguments: expected single code string")');
+          return;
+        }
         const [apexCode] = args as [string];
         ensure(apexCode, is.String);
 
