@@ -22,6 +22,16 @@ command! SFRetrieve call denops#request('sfdev', 'retrieve', [])
 command! -range -nargs=? SFApexExecute call s:ExecuteApex(<line1>, <line2>, <q-args>)
 command! -nargs=? SFRunTest call denops#request('sfdev', 'runTest', [<q-args>])
 
+" Apex Log commands
+if g:sfdev_has_telescope
+  command! SFLogList lua require('sfdev.telescope').show_logs()
+else
+  command! SFLogList echo 'Telescope is required for log list view'
+endif
+command! -nargs=1 SFLogGet call denops#request('sfdev', 'getLog', [<f-args>])
+command! -nargs=1 SFLogDelete call denops#request('sfdev', 'deleteLog', [<f-args>])
+command! SFLogClear call denops#request('sfdev', 'clearLogs', [])
+
 " デフォルト設定
 let g:sfdev_default_org = get(g:, 'sfdev_default_org', '')
 let g:sfdev_auto_deploy = get(g:, 'sfdev_auto_deploy', 0)

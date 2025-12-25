@@ -91,6 +91,10 @@ Plug 'ryo-vbmyyrs/sfdev.nvim'
 | `:SFRetrieve` | メタデータを取得 |
 | `:[range]SFApexExecute [code]` | 匿名Apexを実行（引数、選択範囲、またはバッファ全体） |
 | `:SFRunTest [testName]` | Apexテストを実行 |
+| `:SFLogList` | Apexログ一覧を表示（Telescope使用） |
+| `:SFLogGet <logId>` | 特定のログを取得 |
+| `:SFLogDelete <logId>` | 特定のログを削除 |
+| `:SFLogClear` | 全てのログを削除 |
 
 ### Telescope Features
 
@@ -100,6 +104,16 @@ When [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) is insta
 - **`<C-d>`** - Set selected org as default
 - **`<C-x>`** - Logout from selected org
 - Live preview of org details in the preview window
+
+### Apex Log Viewer
+
+When [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) is installed, `:SFLogList` provides an interactive log viewer with:
+
+- **`<CR>`** (Enter) - Open selected log in a new buffer with syntax highlighting
+- **`<C-d>`** - Delete selected log (with confirmation)
+- **`<C-r>`** - Refresh log list
+- **`<C-a>`** - Clear all logs (with confirmation)
+- Live preview of log metadata in the preview window
 
 ## Configuration
 
@@ -214,7 +228,7 @@ let g:sfdev_no_apex_keymaps = 1     " Disable only Apex file keymaps
 - [ ] Apex Language Server統合
 - [ ] SOQL実行・結果表示
 - [ ] Org Browser（オブジェクト・フィールド一覧）
-- [ ] ログビューア
+- [x] ログビューア
 - [ ] LWC/Auraコンポーネントサポート
 - [ ] Code completion
 - [ ] Diagnostics integration

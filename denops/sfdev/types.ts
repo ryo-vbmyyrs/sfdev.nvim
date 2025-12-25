@@ -60,3 +60,30 @@ export interface TestMethodResult {
   stackTrace?: string;
   runTime?: number;
 }
+
+export interface ApexLog {
+  Id: string;
+  LogUserId: string;
+  LogUser?: {
+    Name: string;
+  };
+  Application: string;
+  DurationMilliseconds: number;
+  Location: string;
+  LogLength: number;
+  Operation: string;
+  Request: string;
+  StartTime: string;
+  Status: string;
+}
+
+export interface LogListResult {
+  success: boolean;
+  logs: ApexLog[];
+}
+
+export interface LogContentResult {
+  success: boolean;
+  content: string;
+  logId?: string;
+}

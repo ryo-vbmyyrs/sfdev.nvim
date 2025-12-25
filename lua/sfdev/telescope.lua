@@ -188,4 +188,163 @@ function M.show_orgs()
   end)
 end
 
+-- Apex Log Picker
+function M.log_picker(logs)
+  local displayer = entry_display.create({
+    separator = " ",
+    items = {
+      { width = 2 },
+      { width = 20 },
+      { width = 30 },
+      { width = 10 },
+      { width = 10 },
+      { remaining = true },
+    },
+  })
+
+  local log_icons = {
+    Async = "⚡",
+    API = "📡",
+    Monitoring = "📊",
+    [""] = "📝",
+  }
+
+  local function make_display(entry)
+    local log = entry.value
+    local icon = log_icons[log.Request] or log_icons[""]
+    local operation = log.Operation or "N/A"
+    local duration = log.DurationMilliseconds and (log.DurationMilliseconds .. "ms") or "N/A"
+    local size = log.LogLength and (math.floor(log.LogLength / 1024) .. "KB") or "N/A"
+    local status_hl = log.Status == "Success" and "TelescopeResultsString" or "TelescopeResultsError"
+
+    return displayer({
+      { icon, "TelescopeResultsIdentifier" },
+      { log.StartTime:sub(1, 19):gsub("T", " "), "TelescopeResultsComment" },
+      { operation:sub(1, 30), "TelescopeResultsField" },
+      { duration, "TelescopeResultsNumber" },
+      { size, "TelescopeResultsNumber" },
+      { log.Status or "Unknown", status_hl },
+    })
+  end
+
+  local function entry_maker(log)
+    return {
+      value = log,
+      display = make_display,
+      ordinal = string.format("%s %s %s", log.StartTime or "", log.Operation or "", log.Status or ""),
+    }
+  end
+
+  pickers.new({}, {
+    prompt_title = "Salesforce Apex Logs",
+    finder = finders.new_table({
+      results = logs,
+      entry_maker = entry_maker,
+    }),
+    sorter = conf.generic_sorter({}),
+    previewer = previewers.new_buffer_previewer({
+      title = "Log Details",
+      define_preview = function(self, entry)
+        local log = entry.value
+        local lines = {
+          "Apex Log Information",
+          "═══════════════════════════════════════",
+          "",
+          string.format("Log ID:          %s", log.Id or "N/A"),
+          string.format("Start Time:      %s", log.StartTime or "N/A"),
+          string.format("Operation:       %s", log.Operation or "N/A"),
+          string.format("Status:          %s", log.Status or "N/A"),
+          string.format("Duration:        %s ms", log.DurationMilliseconds or "N/A"),
+          string.format("Size:            %s bytes", log.LogLength or "N/A"),
+          string.format("Location:        %s", log.Location or "N/A"),
+          string.format("Application:     %s", log.Application or "N/A"),
+          string.format("Request Type:    %s", log.Request or "N/A"),
+          "",
+          "User Information:",
+          string.format("  User ID:       %s", log.LogUserId or "N/A"),
+          string.format("  User Name:     %s", (log.LogUser and log.LogUser.Name) or "N/A"),
+        }
+        
+        vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, lines)
+        vim.api.nvim_buf_set_option(self.state.bufnr, "filetype", "markdown")
+      end,
+    }),
+    attach_mappings = function(prompt_bufnr, map)
+      -- Open log
+      actions.select_default:replace(function()
+        local selection = action_state.get_selected_entry()
+        actions.close(prompt_bufnr)
+        
+        if selection then
+          vim.fn["denops#request"]("sfdev", "getLog", { selection.value.Id })
+        end
+      end)
+
+      -- Delete log
+      map("i", "<C-d>", function()
+        local selection = action_state.get_selected_entry()
+        if selection then
+          local confirm = vim.fn.confirm(
+            "Delete log " .. selection.value.Id .. "?",
+            "&Yes\n&No",
+            2
+          )
+          if confirm == 1 then
+            vim.fn["denops#request"]("sfdev", "deleteLog", { selection.value.Id })
+            -- Refresh the picker
+            vim.defer_fn(function()
+              actions.close(prompt_bufnr)
+              M.show_logs()
+            end, 500)
+          end
+        end
+      end)
+
+      -- Refresh
+      map("i", "<C-r>", function()
+        actions.close(prompt_bufnr)
+        M.show_logs()
+        require("sfdev").notify("Refreshing logs...", vim.log.levels.INFO)
+      end)
+
+      -- Clear all logs
+      map("i", "<C-a>", function()
+        local confirm = vim.fn.confirm(
+          "Delete ALL logs?",
+          "&Yes\n&No",
+          2
+        )
+        if confirm == 1 then
+          actions.close(prompt_bufnr)
+          vim.fn["denops#request"]("sfdev", "clearLogs", {})
+        end
+      end)
+
+      return true
+    end,
+  }):find()
+end
+
+-- Show logs with Telescope
+function M.show_logs()
+  vim.schedule(function()
+    local ok, result = pcall(vim.fn["denops#request"], "sfdev", "listLogs", {})
+    
+    if not ok then
+      require("sfdev").notify("Failed to fetch logs: " .. tostring(result), vim.log.levels.ERROR)
+      return
+    end
+    
+    if result and result.success then
+      if result.logs and #result.logs > 0 then
+        M.log_picker(result.logs)
+      else
+        require("sfdev").notify("No logs found", vim.log.levels.WARN)
+      end
+    else
+      require("sfdev").notify("Failed to fetch logs", vim.log.levels.ERROR)
+    end
+  end)
+end
+
 return M
