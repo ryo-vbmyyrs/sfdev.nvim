@@ -89,7 +89,7 @@ Plug 'ryo-vbmyyrs/sfdev.nvim'
 | `:SFOrgOpen` | ブラウザでOrgを開く |
 | `:SFDeploy` | 現在のファイル/プロジェクトをデプロイ |
 | `:SFRetrieve` | メタデータを取得 |
-| `:SFApexExecute [code]` | 匿名Apexを実行 |
+| `:[range]SFApexExecute [code]` | 匿名Apexを実行（引数、選択範囲、またはバッファ全体） |
 | `:SFRunTest [testName]` | Apexテストを実行 |
 
 ### Telescope Features
@@ -140,6 +140,8 @@ let g:sfdev_cli_path = 'sf'
 
 ## Usage Examples
 
+### Basic Commands
+
 ```vim
 " Org一覧を表示
 :SFOrgList
@@ -150,11 +152,61 @@ let g:sfdev_cli_path = 'sf'
 " 現在のファイルをデプロイ
 :SFDeploy
 
-" 匿名Apexを実行
+" 匿名Apexを実行（引数として渡す）
 :SFApexExecute System.debug('Hello from Neovim!');
 
 " 特定のテストを実行
 :SFRunTest MyTestClass
+```
+
+### Execute Apex Code from Buffer
+
+The `SFApexExecute` command now supports executing code from the current buffer:
+
+```vim
+" 1. Apexファイルを作成/開く
+:edit test.apex
+
+" 2. コードを記述
+" System.debug('Hello from Neovim!');
+" Account acc = new Account(Name='Test');
+" insert acc;
+
+" 3. バッファ全体を実行
+:SFApexExecute
+
+" または、キーマップを使用 (Normal mode)
+<leader>se
+
+" 4. 範囲を選択して実行 (Visual mode)
+" ビジュアルモードでコードを選択してから:
+'<,'>SFApexExecute
+" または
+<leader>se
+
+" 5. Apexファイルでは専用のキーマップも使用可能
+" Normal mode: <leader>r でバッファ全体を実行
+" Visual mode: <leader>r で選択範囲を実行
+```
+
+### Default Keymaps
+
+Global keymaps (work in all file types):
+- `<leader>se` - Execute Apex (buffer or visual selection)
+- `<leader>sl` - List Orgs
+- `<leader>so` - Open Org in browser
+- `<leader>sd` - Deploy current file
+- `<leader>sr` - Retrieve metadata
+- `<leader>st` - Run tests
+
+Apex file keymaps (only in `.apex` or `.cls` files):
+- `<leader>r` - Execute Apex (buffer or visual selection)
+- `<leader>e` - Jump to error line (after execution failure)
+
+To disable default keymaps:
+```vim
+let g:sfdev_no_default_keymaps = 1  " Disable all default keymaps
+let g:sfdev_no_apex_keymaps = 1     " Disable only Apex file keymaps
 ```
 
 ## Roadmap

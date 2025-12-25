@@ -270,6 +270,17 @@ export async function executeApex(
     try {
       const json = JSON.parse(result.stdout);
 
+      // Extract debug logs from the result
+      const logs: string[] = [];
+      if (json.result?.logs) {
+        const logLines = json.result.logs.split("\n");
+        for (const line of logLines) {
+          if (line.trim()) {
+            logs.push(line);
+          }
+        }
+      }
+
       return {
         success: json.result?.success || false,
         compiled: json.result?.compiled || false,
@@ -278,6 +289,7 @@ export async function executeApex(
         exceptionStackTrace: json.result?.exceptionStackTrace,
         line: json.result?.line,
         column: json.result?.column,
+        logs: logs.length > 0 ? logs : undefined,
       };
     } catch (e) {
       return {
