@@ -2,6 +2,67 @@ import type { Denops } from "./deps.ts";
 import { batch, ensure, fn, is, vars } from "./deps.ts";
 import * as cli from "./cli.ts";
 
+/**
+ * Show execute result in simple buffer (fallback when NUI not available)
+ */
+async function showExecuteResultSimple(
+  denops: Denops,
+  apexCode: string,
+  result: cli.ExecuteResult,
+): Promise<void> {
+  // Create new split
+  await denops.cmd("vnew");
+  await denops.cmd("setlocal buftype=nofile bufhidden=wipe noswapfile");
+
+  const lines = [
+    "=== Apex Execution Result ===",
+    "",
+    "Input Code:",
+    "─────────────────────────────",
+    ...apexCode.split("\n"),
+    "",
+    "Output:",
+    "─────────────────────────────",
+  ];
+
+  if (result.success) {
+    lines.push("✓ Compiled successfully");
+    lines.push("✓ Executed successfully");
+  } else {
+    lines.push("✗ Execution failed");
+    if (result.compileProblem) {
+      lines.push("");
+      lines.push("Compile Error:");
+      lines.push(result.compileProblem);
+      if (result.line) {
+        lines.push(`Line: ${result.line}, Column: ${result.column || 0}`);
+      }
+    }
+    if (result.exceptionMessage) {
+      lines.push("");
+      lines.push("Exception:");
+      lines.push(result.exceptionMessage);
+      if (result.exceptionStackTrace) {
+        lines.push("");
+        lines.push("Stack Trace:");
+        lines.push(result.exceptionStackTrace);
+      }
+    }
+  }
+
+  if (result.logs && result.logs.length > 0) {
+    lines.push("");
+    lines.push("Debug Logs:");
+    lines.push("─────────────────────────────");
+    lines.push(...result.logs);
+  }
+
+  const bufnr = await fn.bufnr(denops, "%") as number;
+  await denops.call("nvim_buf_set_lines", bufnr, 0, -1, false, lines);
+  await denops.call("nvim_buf_set_option", bufnr, "modifiable", false);
+  await denops.cmd("setlocal filetype=apexlog");
+}
+
 export async function main(denops: Denops): Promise<void> {
   // Register plugin API
   denops.dispatcher = {
@@ -174,62 +235,62 @@ export async function main(denops: Denops): Promise<void> {
     /**
      * Execute anonymous Apex
      */
-    async executeApex(apexCode?: unknown): Promise<void> {
+    async executeApex(args: unknown): Promise<void> {
       try {
-        const code = ensure(apexCode, is.OptionalOf(is.String));
+        ensure(args, is.Array);
+        if (args.length !== 1) {
+          await denops.call(
+            "sfdev#echo_error",
+            "Invalid arguments. Use :SFApexExecute [code] or :SFApexExecute without args to execute buffer",
+          );
+          return;
+        }
+        const [apexCode] = args as [string];
+        ensure(apexCode, is.String);
+
+        if (!apexCode || apexCode.trim() === "") {
+          await denops.call("sfdev#echo_error", "No Apex code provided");
+          return;
+        }
+
         const targetOrg = (await vars.g.get(
           denops,
           "sfdev_default_org",
           "",
         )) as string;
 
-        let apexToExecute: string;
-        if (code) {
-          apexToExecute = code;
-        } else {
-          // Get visual selection or current line
-          const mode = await fn.mode(denops) as string;
-          if (mode === "v" || mode === "V") {
-            // Visual mode - get selected text
-            await denops.cmd('normal! "xy');
-            apexToExecute = await fn.getreg(denops, "x") as string;
-          } else {
-            // Get all lines in buffer
-            const lines = await fn.getline(denops, 1, "$") as string[];
-            apexToExecute = lines.join("\n");
-          }
-        }
-
-        if (!apexToExecute.trim()) {
-          await denops.call(
-            "sfdev#echo_error",
-            "No Apex code to execute",
-          );
-          return;
-        }
-
-        await denops.call("sfdev#echo_info", "Executing Apex...");
+        // Execution info
+        const lines = apexCode.split("\n").length;
+        await denops.call(
+          "sfdev#echo_info",
+          `Executing ${lines} line(s) of Apex code...`,
+        );
 
         const result = await cli.executeApex(
-          apexToExecute,
+          apexCode,
           targetOrg || undefined,
         );
 
-        if (result.success) {
+        // Check if NUI is available for rich display
+        const hasNui = await vars.g.get(denops, "sfdev_has_nui", false) as boolean;
+
+        if (hasNui) {
+          // Use NUI for rich display
           await denops.call(
-            "sfdev#echo_success",
-            "Apex executed successfully",
-          );
-        } else if (!result.compiled) {
-          await denops.call(
-            "sfdev#echo_error",
-            `Compilation failed: ${result.compileProblem || "Unknown error"}`,
+            "luaeval",
+            "require('sfdev.ui.apex').show_execute_result(_A[1], _A[2])",
+            [apexCode, result],
           );
         } else {
-          await denops.call(
-            "sfdev#echo_error",
-            `Execution failed: ${result.exceptionMessage || "Unknown error"}`,
-          );
+          // Fallback to simple buffer display
+          await showExecuteResultSimple(denops, apexCode, result);
+        }
+
+        // Show status message
+        if (result.success) {
+          await denops.call("sfdev#echo_success", "Apex executed successfully");
+        } else {
+          await denops.call("sfdev#echo_error", "Apex execution failed");
         }
       } catch (e) {
         await denops.call(
