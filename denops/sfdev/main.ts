@@ -234,19 +234,28 @@ export async function main(denops: Denops): Promise<void> {
 
     /**
      * Execute anonymous Apex
+     * Note: This method accepts both string and array arguments because it's called
+     * from Vim commands which may pass arguments in different formats depending on
+     * how they're invoked (e.g., <q-args> may pass as string or array).
      */
     async executeApex(args: unknown): Promise<void> {
       try {
-        ensure(args, is.Array);
-        if (args.length !== 1) {
+        // Handle both string and array arguments flexibly
+        let apexCode = "";
+        
+        if (typeof args === "string") {
+          apexCode = args;
+        } else if (Array.isArray(args)) {
+          if (args.length > 0 && typeof args[0] === "string") {
+            apexCode = args[0];
+          }
+        } else {
           await denops.call(
             "sfdev#echo_error",
             "Invalid arguments. Use :SFApexExecute [code] or :SFApexExecute without args to execute buffer",
           );
           return;
         }
-        const [apexCode] = args as [string];
-        ensure(apexCode, is.String);
 
         if (!apexCode || apexCode.trim() === "") {
           await denops.call("sfdev#echo_error", "No Apex code provided");
@@ -271,20 +280,8 @@ export async function main(denops: Denops): Promise<void> {
           targetOrg || undefined,
         );
 
-        // Check if NUI is available for rich display
-        const hasNui = await vars.g.get(denops, "sfdev_has_nui", false) as boolean;
-
-        if (hasNui) {
-          // Use NUI for rich display
-          await denops.call(
-            "luaeval",
-            "require('sfdev.ui.apex').show_execute_result(_A[1], _A[2])",
-            [apexCode, result],
-          );
-        } else {
-          // Fallback to simple buffer display
-          await showExecuteResultSimple(denops, apexCode, result);
-        }
+        // Display result in simple buffer
+        await showExecuteResultSimple(denops, apexCode, result);
 
         // Show status message
         if (result.success) {
