@@ -145,7 +145,7 @@ function M.goto_error_line(line, column)
   vim.cmd("wincmd p")
   
   -- 該当行へジャンプ (column is 1-based, nvim_win_set_cursor expects 0-based column)
-  local col_zero_based = (column and column > 0) and (column - 1) or 0
+  local col_zero_based = math.max(0, (column or 1) - 1)
   vim.api.nvim_win_set_cursor(0, { line, col_zero_based })
   
   -- ハイライト

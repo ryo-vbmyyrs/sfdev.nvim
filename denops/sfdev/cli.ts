@@ -271,15 +271,9 @@ export async function executeApex(
       const json = JSON.parse(result.stdout);
 
       // Extract debug logs from the result
-      const logs: string[] = [];
-      if (json.result?.logs) {
-        const logLines = json.result.logs.split("\n");
-        for (const line of logLines) {
-          if (line.trim()) {
-            logs.push(line);
-          }
-        }
-      }
+      const logs = json.result?.logs
+        ? json.result.logs.split("\n").filter((line: string) => line.trim())
+        : [];
 
       return {
         success: json.result?.success || false,

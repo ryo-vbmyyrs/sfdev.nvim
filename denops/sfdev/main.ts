@@ -230,6 +230,7 @@ export async function main(denops: Denops): Promise<void> {
       try {
         ensure(args, is.Array);
         const [apexCode] = args as [string];
+        ensure(apexCode, is.String);
 
         if (!apexCode || apexCode.trim() === "") {
           await denops.cmd('call sfdev#echo_error("No Apex code provided")');
