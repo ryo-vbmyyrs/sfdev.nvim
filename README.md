@@ -20,6 +20,13 @@ VSCodeのSalesforce拡張機能と同等の開発体験をNeovimで実現する�
 - [denops.vim](https://github.com/vim-denops/denops.vim)
 - [Salesforce CLI](https://developer.salesforce.com/tools/sfdxcli) (sf or sfdx)
 
+### Optional (for rich UI)
+
+- [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) - For interactive pickers
+- [nui.nvim](https://github.com/MunifTanjim/nui.nvim) - For rich UI components
+- [nvim-notify](https://github.com/rcarriga/nvim-notify) - For notifications
+- [nvim-web-devicons](https://github.com/nvim-tree/nvim-web-devicons) - For icons
+
 ## Installation
 
 ### Using [lazy.nvim](https://github.com/folke/lazy.nvim)
@@ -29,11 +36,16 @@ VSCodeのSalesforce拡張機能と同等の開発体験をNeovimで実現する�
   'ryo-vbmyyrs/sfdev.nvim',
   dependencies = {
     'vim-denops/denops.vim',
+    -- Optional UI dependencies
+    'nvim-telescope/telescope.nvim',
+    'MunifTanjim/nui.nvim',
+    'rcarriga/nvim-notify',
+    'nvim-tree/nvim-web-devicons',
   },
   config = function()
-    -- Optional: カスタム設定
-    vim.g.sfdev_default_org = 'myorg'
-    vim.g.sfdev_auto_deploy = 0
+    require('sfdev').setup({
+      -- Configuration options
+    })
   end,
 }
 ```
@@ -45,7 +57,15 @@ use {
   'ryo-vbmyyrs/sfdev.nvim',
   requires = {
     'vim-denops/denops.vim',
+    -- Optional UI dependencies
+    'nvim-telescope/telescope.nvim',
+    'MunifTanjim/nui.nvim',
+    'rcarriga/nvim-notify',
+    'nvim-tree/nvim-web-devicons',
   },
+  config = function()
+    require('sfdev').setup()
+  end,
 }
 ```
 
@@ -53,6 +73,11 @@ use {
 
 ```vim
 Plug 'vim-denops/denops.vim'
+" Optional UI plugins
+Plug 'nvim-telescope/telescope.nvim'
+Plug 'MunifTanjim/nui.nvim'
+Plug 'rcarriga/nvim-notify'
+Plug 'nvim-tree/nvim-web-devicons'
 Plug 'ryo-vbmyyrs/sfdev.nvim'
 ```
 
@@ -60,14 +85,47 @@ Plug 'ryo-vbmyyrs/sfdev.nvim'
 
 | Command | Description |
 |---------|-------------|
-| `:SFOrgList` | 認証済みOrg一覧を表示 |
+| `:SFOrgList` | 認証済みOrg一覧を表示（Telescope使用時は対話的なピッカー） |
 | `:SFOrgOpen` | ブラウザでOrgを開く |
 | `:SFDeploy` | 現在のファイル/プロジェクトをデプロイ |
 | `:SFRetrieve` | メタデータを取得 |
 | `:SFApexExecute [code]` | 匿名Apexを実行 |
 | `:SFRunTest [testName]` | Apexテストを実行 |
 
+### Telescope Features
+
+When [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) is installed, `:SFOrgList` provides an interactive picker with:
+
+- **`<CR>`** (Enter) - Open selected org in browser
+- **`<C-d>`** - Set selected org as default
+- **`<C-x>`** - Logout from selected org
+- Live preview of org details in the preview window
+
 ## Configuration
+
+```lua
+require('sfdev').setup({
+  -- Use Telescope for org list (default: true if available)
+  use_telescope = true,
+  
+  -- Use NUI for rich UI (default: true if available)
+  use_nui = true,
+  
+  -- Use nvim-notify for notifications (default: true if available)
+  use_notify = true,
+  
+  -- Salesforce CLI path
+  cli_path = 'sf',
+  
+  -- Default org
+  default_org = '',
+  
+  -- Auto deploy on save
+  auto_deploy = false,
+})
+```
+
+Or using Vimscript:
 
 ```vim
 " デフォルトのOrg

@@ -3,8 +3,19 @@ if exists('g:loaded_sfdev')
 endif
 let g:loaded_sfdev = 1
 
+" Check for optional dependencies
+let g:sfdev_has_telescope = luaeval("pcall(require, 'telescope')")
+let g:sfdev_has_nui = luaeval("pcall(require, 'nui.popup')")
+let g:sfdev_has_notify = luaeval("pcall(require, 'notify')")
+
 " コマンドの定義
-command! SFOrgList call denops#request('sfdev', 'listOrgs', [])
+" Use Telescope for org list if available, otherwise use default
+if g:sfdev_has_telescope
+  command! SFOrgList lua require('sfdev.telescope').show_orgs()
+else
+  command! SFOrgList call denops#request('sfdev', 'listOrgs', [])
+endif
+
 command! SFOrgOpen call denops#request('sfdev', 'openOrg', [])
 command! SFDeploy call denops#request('sfdev', 'deploy', [])
 command! SFRetrieve call denops#request('sfdev', 'retrieve', [])
