@@ -234,6 +234,9 @@ export async function main(denops: Denops): Promise<void> {
 
     /**
      * Execute anonymous Apex
+     * Note: This method accepts both string and array arguments because it's called
+     * from Vim commands which may pass arguments in different formats depending on
+     * how they're invoked (e.g., <q-args> may pass as string or array).
      */
     async executeApex(args: unknown): Promise<void> {
       try {
