@@ -243,8 +243,8 @@ export async function main(denops: Denops): Promise<void> {
         if (typeof args === "string") {
           apexCode = args;
         } else if (Array.isArray(args)) {
-          if (args.length > 0) {
-            apexCode = String(args[0]);
+          if (args.length > 0 && typeof args[0] === "string") {
+            apexCode = args[0];
           }
         } else {
           await denops.call(
